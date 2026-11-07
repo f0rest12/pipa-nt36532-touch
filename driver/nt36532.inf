@@ -1,0 +1,55 @@
+;
+; nt36532.inf — KMDF SPB→HID (VHF) драйвер тача NovaTek NT36532 для pipa.
+; HWID ACPI\PIPA3653 має збігатися з _HID нашого вузла тача в DSDT (див. хендофф §10.4).
+;
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = System
+ClassGuid   = {4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider    = %Prov%
+CatalogFile = nt36532.cat
+DriverVer   = 01/01/2026,1.0.0.0
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %Disk%,,,""
+
+[SourceDisksFiles]
+nt36532.sys = 1
+
+[Manufacturer]
+%Prov% = Std, NTARM64
+
+[Std.NTARM64]
+%DeviceDesc% = NtDevice, ACPI\PIPA3653
+
+[NtDevice.NT]
+CopyFiles = NtCopy
+
+[NtCopy]
+nt36532.sys
+
+[NtDevice.NT.Services]
+AddService = nt36532, 0x00000002, NtService
+
+[NtService]
+DisplayName   = %SvcDesc%
+ServiceType   = 1
+StartType     = 3
+ErrorControl  = 1
+ServiceBinary = %13%\nt36532.sys
+
+[NtDevice.NT.Wdf]
+KmdfService = nt36532, NtWdf
+
+[NtWdf]
+KmdfLibraryVersion = 1.33
+
+[Strings]
+Prov       = "pipa WoA"
+Disk       = "nt36532 install"
+DeviceDesc = "NovaTek NT36532 Touch (pipa)"
+SvcDesc    = "nt36532 touch service"
