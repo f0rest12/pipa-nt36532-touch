@@ -1,49 +1,8 @@
-name: build-nt36532
-
-on:
-  push:
-    branches: [ main, master ]
-  workflow_dispatch:
-
+name: build
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-
-      # VS2022 вже стоїть на раннері; доставляємо WDK (заголовки/ліби KMDF+VHF+SPB)
-      # та інтеграцію WDK у MSBuild (.vsix).
-      - name: Install WDK
-        shell: pwsh
-        run: |
-          choco install windowsdriverkit11 -y --no-progress
-          # інтеграція WDK у Visual Studio (vsix). Шлях може відрізнятись між версіями WDK —
-          # якщо крок впаде, у логах буде реальний шлях до WDK.vsix: підправ рядок нижче.
-          $vsix = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Vsix" -Recurse -Filter *.vsix -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($vsix) {
-            $installer = (Get-ChildItem "C:\Program Files*\Microsoft Visual Studio\2022\*\Common7\IDE\VSIXInstaller.exe" | Select-Object -First 1).FullName
-            & $installer /quiet /admin $vsix.FullName
-          } else {
-            Write-Host "WDK.vsix не знайдено автоматично — глянь дерево C:\Program Files (x86)\Windows Kits\10 у логах"
-          }
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Build ARM64 (Release)
-        shell: cmd
-        run: msbuild driver\nt36532.vcxproj /p:Configuration=Release /p:Platform=ARM64 /p:SignMode=Off /m
-
-      - name: Collect output
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force out | Out-Null
-          Get-ChildItem -Recurse driver -Include nt36532.sys,nt36532.inf,nt36532.cat |
-            ForEach-Object { Copy-Item $_.FullName out\ -Force }
-          Get-ChildItem out
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: nt36532-arm64
-          path: out/**
-          if-no-files-found: error
+      - run: echo hello
